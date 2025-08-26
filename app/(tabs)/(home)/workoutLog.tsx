@@ -1,0 +1,173 @@
+import Button from "@/components/Button";
+import { useEffect, useState } from "react";
+import { SectionList, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+type set = {
+  weight: number,
+  reps: number
+}
+
+type workoutProps = {
+  title: string,
+  data: set[]
+}
+
+export default function WorkoutLog() {
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("")
+
+  const [workouts, setWorkouts] = useState<workoutProps[]>(
+    [{title:"Bench Press", 
+    data: [{ weight:0, reps:0 }]},
+    {title:"Squat",
+    data: [{weight: 0, reps: 0}]
+    }]
+  )
+
+  const updateSet = (sectionIndex: number, itemIndex: number, field: "weight" | "reps", value: string) => {
+    setWorkouts(prev => {
+      const newWorkouts = [...prev];
+      const updatedSection = { ...newWorkouts[sectionIndex] };
+      const updatedData = [...updatedSection.data];
+      updatedData[itemIndex] = { ...updatedData[itemIndex], [field]: Number(value) || 0 };
+      updatedSection.data = updatedData;
+      newWorkouts[sectionIndex] = updatedSection;
+      return newWorkouts;
+    });
+  };
+
+  const updateTitle = (sectionIndex: number, value: string) => {
+    setWorkouts(prev => {
+      const newWorkouts = [...prev];
+      newWorkouts[sectionIndex] = { ...newWorkouts[sectionIndex], title: value };
+      return newWorkouts;
+    });
+  };
+
+  const addSet = (sectionIndex: number) => {
+    setWorkouts(prev => {
+      const newWorkouts = [...prev];
+      const updatedSection = { ...newWorkouts[sectionIndex]};
+      let updatedData = [...updatedSection.data];
+      updatedData = [...updatedData, {weight: 0, reps: 0}];
+      updatedSection.data = updatedData;
+      newWorkouts[sectionIndex] = updatedSection;
+      return newWorkouts;
+    })
+  }
+
+  const removeSet = (sectionIndex: number, itemIndex: number) => {
+    setWorkouts(prev => {
+      const newWorkouts = [...prev];
+      const updatedSection = {...newWorkouts[sectionIndex]};
+      let updatedData = [...updatedSection.data];
+      updatedData = updatedData.filter((_, index) => index !== itemIndex);
+      updatedSection.data = updatedData;
+      newWorkouts[sectionIndex] = updatedSection;
+      return newWorkouts;
+    })
+  }
+
+  useEffect(() => {
+    const today = new Date();
+
+    const day = today.getDate();
+    const month = today.getMonth();
+    const year = today.getFullYear();
+
+    const formattedDate = `${month}/${day}/${year}`;
+    setDate(formattedDate);
+  }, []);
+
+  return (
+    <SafeAreaView>
+      <TextInput 
+        style={styles.nameInput}
+        placeholder="Name"
+        onChangeText={newName => setTitle(newName)}
+        value={title} />
+
+      <Text style={styles.date}>{date}</Text>
+
+      <SectionList sections={workouts}
+        keyExtractor={(index) => `workout-${index}`}
+
+        renderItem={({ item, index, section }) => {
+          const sectionIndex = workouts.findIndex(s => s === section);
+          return (
+          <View style={styles.setContainer}>
+            <TextInput 
+              style={styles.set}
+              placeholder="weight"
+              keyboardType="numeric"
+              onChangeText={text => updateSet(sectionIndex, index, "weight", text)}
+              value={item.weight.toString()} />
+            <Text style={styles.set}>:</Text>
+            <TextInput 
+              style={styles.set}
+              placeholder="reps"
+              keyboardType="numeric" 
+              onChangeText={text => updateSet(sectionIndex, index, "reps", text)}
+              value={item.reps.toString()} />
+            <Button type="remove" action={() => removeSet(sectionIndex, index)} />
+          </View>
+        )}}
+
+        renderSectionHeader={({ section }) => {
+          const sectionIndex = workouts.findIndex(s => s === section)
+          return (
+            <TextInput 
+              style={styles.excerciseName}
+              placeholder="name"
+              onChangeText={text => updateTitle(sectionIndex, text)}
+              value={section.title} />
+          )
+        }}
+        
+        renderSectionFooter={({ section }) => {
+          const sectionIndex = workouts.findIndex(s => s === section);
+          return (
+            <View style={{justifyContent: "center", alignItems: "center"}}>
+              <Button action={() => addSet(sectionIndex)} />
+            </View>
+          )
+        }} />
+    </SafeAreaView>
+  )
+}
+
+const styles = StyleSheet.create({
+  nameInput: {
+    padding: 12,
+    paddingBottom: 0,
+    fontSize: 64,
+    fontWeight: "bold",
+  },
+  date: {
+    paddingBottom: 16,
+    paddingLeft: 12,
+    fontSize: 32,
+    fontWeight: "semibold",
+    color: "black",
+    textDecorationLine: "underline"
+  }, 
+  excerciseName: {
+    padding: 12,
+    fontSize: 24
+  },
+  setContainer: {
+    backgroundColor: "#b9c1c9",
+    flexDirection: "row",
+    flex: 1,
+    padding: 12,
+    margin: 8,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  set: {
+    width: 64,
+    textAlign: "center", 
+    fontSize: 18,
+  }
+})
