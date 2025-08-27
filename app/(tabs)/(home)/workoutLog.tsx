@@ -102,14 +102,14 @@ export default function WorkoutLog() {
               placeholder="weight"
               keyboardType="numeric"
               onChangeText={text => updateSet(sectionIndex, index, "weight", text)}
-              value={item.weight.toString()} />
+              value={item.weight !== 0 ? item.weight.toString() : undefined} />
             <Text style={styles.set}>:</Text>
             <TextInput 
               style={styles.set}
               placeholder="reps"
               keyboardType="numeric" 
               onChangeText={text => updateSet(sectionIndex, index, "reps", text)}
-              value={item.reps.toString()} />
+              value={item.reps !== 0 ? item.reps.toString() : undefined} />
             <Button type="remove" action={() => removeSet(sectionIndex, index)} />
           </View>
         )}}

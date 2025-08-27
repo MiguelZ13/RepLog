@@ -1,13 +1,16 @@
+import AppProvider from "@/providers/AppProvider";
 import { Stack } from "expo-router";
 import { StatusBar } from "react-native";
 
 export default function RootLayout() {
   return (
-  <Stack>
+  <AppProvider>
     <StatusBar barStyle={"dark-content"} />
-    <Stack.Screen name="(tabs)" options={{
-      headerShown: false
-    }} />
-  </Stack>
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{
+        headerShown: false
+      }} />
+    </Stack>
+  </AppProvider>
   );
 }

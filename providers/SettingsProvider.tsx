@@ -14,7 +14,7 @@ const defaultSettings: Settings = {
 type SettingsContextType = {
     settings: Settings;
     updateSettings: (newSettings: Partial<Settings>) => void;
-}
+};
 
 export const SettingsContext = createContext<SettingsContextType | null>(null);
 
