@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useEffect, useMemo, useState } from "react";
+import { createContext, PropsWithChildren, useEffect, useMemo, useState } from "react";
 
 type set = {
   weight: number;
@@ -19,7 +19,7 @@ type Data = {
   note: string;
 };
 
-const defaultWorkout: Data = {
+export const defaultWorkout: Data = {
   id: 0,
   name: "",
   date: "",
@@ -33,14 +33,16 @@ const defaultWorkout: Data = {
 const defaultData: Data[] = [defaultWorkout]
 
 type DataContextType = {
+  data: Data[]
   getWorkout: (id: number) => Data | null;
   addWorkout: () => void;
   updateWorkout: (workout: Data) => void;
+  removeWorkout: (id: number) => void;
 }
 
 export const DataContext = createContext<DataContextType | null>(null);
 
-export default function DataProvider(children: React.ReactNode) {
+export default function DataProvider({ children }: PropsWithChildren) {
   const [data, setData] = useState<Data[]>(defaultData);
 
   useEffect(() => {
@@ -60,7 +62,14 @@ export default function DataProvider(children: React.ReactNode) {
       data.find((d) => d.id === id) ?? null,
     addWorkout: () => (
       setData((prev) => {
-        const newWorkout = {...defaultWorkout, id: prev.length};
+        const today = new Date();
+
+        const day = today.getDate();
+        const month = today.getMonth();
+        const year = today.getFullYear();
+
+        const formattedDate = `${month}/${day}/${year}`;
+        const newWorkout = {...defaultWorkout, id: prev.length, date: formattedDate};
         const updated = [...prev, newWorkout];
         AsyncStorage.setItem(`app_data`, JSON.stringify(updated));
         return updated
@@ -68,16 +77,19 @@ export default function DataProvider(children: React.ReactNode) {
     ),
     updateWorkout: (workout: Data) => (
       setData((prev) => {
-        const updated = prev.map((d) => {
-          if (d.id === workout.id) {
-            return workout;
-          } else {
-            return d;
-          }
-        });
+        const updated = prev.map((d) =>  d.id === workout.id ? workout : d);
         AsyncStorage.setItem(`app_data`, JSON.stringify(updated))
         return updated;
-      }))
+      })
+    ),
+    removeWorkout: (id: number) => (
+      setData((prev) => {
+        const updated = prev.filter((d) => d.id !== id);
+        AsyncStorage.setItem("app_data", JSON.stringify(updated));
+        return updated;
+      })
+    ),
+    data
   }), [data])
 
   return (

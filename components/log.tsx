@@ -1,19 +1,20 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type LogProps = {
+    action: () => void;
     date: string,
     name: string,
 }
 
-export default function Log({date, name}: LogProps) {
+export default function Log({action, date, name}: LogProps) {
     return (
-    <View style={styles.container}>
+    <Pressable onPress={action} style={styles.container}>
         <View style={{flex:1, flexDirection:"row", alignItems: "center"}}>
             <Text style={styles.date}>{date}: </Text>
             <Text style={styles.name}>{name}</Text>
         </View>
         <Text>Summary: </Text>
-    </View>
+    </Pressable>
     )
 }
 

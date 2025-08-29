@@ -1,5 +1,8 @@
 import Button from "@/components/Button";
-import { useEffect, useState } from "react";
+import { useData } from "@/hooks/useData";
+import { defaultWorkout } from "@/providers/DataProvider";
+import { useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { SectionList, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -14,16 +17,15 @@ type workoutProps = {
 }
 
 export default function WorkoutLog() {
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("")
+  const { id } = useLocalSearchParams();
+  const { ...value } = useData();
+  const { getWorkout } = value;
 
-  const [workouts, setWorkouts] = useState<workoutProps[]>(
-    [{title:"Bench Press", 
-    data: [{ weight:0, reps:0 }]},
-    {title:"Squat",
-    data: [{weight: 0, reps: 0}]
-    }]
-  )
+  const day = getWorkout(Number(id)) ?? defaultWorkout;
+
+  const [workouts, setWorkouts] = useState<workoutProps[]>(day.workouts);
+  const [title, setTitle] = useState(day.name);
+  const [notes, setNotes] = useState(day.note);
 
   const updateSet = (sectionIndex: number, itemIndex: number, field: "weight" | "reps", value: string) => {
     setWorkouts(prev => {
@@ -69,17 +71,6 @@ export default function WorkoutLog() {
     })
   }
 
-  useEffect(() => {
-    const today = new Date();
-
-    const day = today.getDate();
-    const month = today.getMonth();
-    const year = today.getFullYear();
-
-    const formattedDate = `${month}/${day}/${year}`;
-    setDate(formattedDate);
-  }, []);
-
   return (
     <SafeAreaView>
       <TextInput 
@@ -88,7 +79,7 @@ export default function WorkoutLog() {
         onChangeText={newName => setTitle(newName)}
         value={title} />
 
-      <Text style={styles.date}>{date}</Text>
+      <Text style={styles.date}>{day.date}</Text>
 
       <SectionList sections={workouts}
         keyExtractor={(index) => `workout-${index}`}
@@ -133,6 +124,11 @@ export default function WorkoutLog() {
             </View>
           )
         }} />
+
+      <TextInput
+        placeholder="Notes"
+        onChangeText={newNotes => setNotes(newNotes)}
+        value={notes} />
     </SafeAreaView>
   )
 }

@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useEffect, useState } from "react";
+import { createContext, PropsWithChildren, useEffect, useState } from "react";
 
 type Settings = {
     theme: "light" | "dark";
@@ -18,7 +18,7 @@ type SettingsContextType = {
 
 export const SettingsContext = createContext<SettingsContextType | null>(null);
 
-export default function SettingsProvider(children: React.ReactNode) {
+export default function SettingsProvider({ children }: PropsWithChildren) {
     const [settings, setSettings] = useState<Settings>(defaultSettings);
 
     useEffect(() => {
