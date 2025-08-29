@@ -80,6 +80,7 @@ export default function WorkoutLog() {
         value={title} />
 
       <Text style={styles.date}>{day.date}</Text>
+      <Text>{id}</Text>
 
       <SectionList sections={workouts}
         keyExtractor={(index) => `workout-${index}`}

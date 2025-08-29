@@ -4,9 +4,10 @@ type LogProps = {
     action: () => void;
     date: string,
     name: string,
+    notes: string
 }
 
-export default function Log({action, date, name}: LogProps) {
+export default function Log({action, date, name, notes}: LogProps) {
     return (
     <Pressable onPress={action} style={styles.container}>
         <View style={{flex:1, flexDirection:"row", alignItems: "center"}}>

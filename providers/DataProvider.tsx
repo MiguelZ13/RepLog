@@ -33,23 +33,28 @@ export const defaultWorkout: Data = {
 const defaultData: Data[] = [defaultWorkout]
 
 type DataContextType = {
-  data: Data[]
+  data: Data[];
+  lastId: number;
   getWorkout: (id: number) => Data | null;
   addWorkout: () => void;
   updateWorkout: (workout: Data) => void;
   removeWorkout: (id: number) => void;
+  clearWorkouts: () => void;
 }
 
 export const DataContext = createContext<DataContextType | null>(null);
 
 export default function DataProvider({ children }: PropsWithChildren) {
   const [data, setData] = useState<Data[]>(defaultData);
+  const [lastId, setLastId] = useState<number>(0);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         const jsonData = await AsyncStorage.getItem("app_data");
-        setData(jsonData != null ? JSON.parse(jsonData) : defaultData)
+        const loadedData: Data[] = jsonData != null ? JSON.parse(jsonData) : defaultData;
+        setData(loadedData);
+        setLastId(loadedData[0].id)
       } catch (e) {
         console.error(`Error Loading Data: ${e}`)
       }
@@ -57,10 +62,22 @@ export default function DataProvider({ children }: PropsWithChildren) {
     loadData();
   }, [])
 
+  useEffect(() => {
+    const refreshData = async () => {
+      try {
+        setLastId(data[0].id)
+        await AsyncStorage.setItem(`app_data`, JSON.stringify(data));
+      } catch (e) {
+        console.error(`Error Refreshing Data: ${e}`)
+      }
+    }
+    refreshData();
+  }, [data])
+
   const value = useMemo(() => ({
     getWorkout: (id: number) => 
       data.find((d) => d.id === id) ?? null,
-    addWorkout: () => (
+    addWorkout: async () => {
       setData((prev) => {
         const today = new Date();
 
@@ -69,28 +86,24 @@ export default function DataProvider({ children }: PropsWithChildren) {
         const year = today.getFullYear();
 
         const formattedDate = `${month}/${day}/${year}`;
-        const newWorkout = {...defaultWorkout, id: prev.length, date: formattedDate};
-        const updated = [...prev, newWorkout];
-        AsyncStorage.setItem(`app_data`, JSON.stringify(updated));
+        let nextId = lastId + 1
+        const newWorkout = {...defaultWorkout, id: nextId, date: formattedDate};
+        const updated = [newWorkout, ...prev];
         return updated
-      })
-    ),
-    updateWorkout: (workout: Data) => (
-      setData((prev) => {
-        const updated = prev.map((d) =>  d.id === workout.id ? workout : d);
-        AsyncStorage.setItem(`app_data`, JSON.stringify(updated))
-        return updated;
-      })
-    ),
-    removeWorkout: (id: number) => (
-      setData((prev) => {
-        const updated = prev.filter((d) => d.id !== id);
-        AsyncStorage.setItem("app_data", JSON.stringify(updated));
-        return updated;
-      })
-    ),
-    data
-  }), [data])
+      });
+    },
+    updateWorkout: async (workout: Data) => {
+      setData(data.map((d) =>  d.id === workout.id ? workout : d));
+    },
+    removeWorkout: async (id: number) => {
+      setData(data.filter((d) => d.id !== id));
+    },
+    clearWorkouts: () => {
+      setData(defaultData);
+    },
+    data, 
+    lastId
+  }), [data, lastId])
 
   return (
     <DataContext value={value}>

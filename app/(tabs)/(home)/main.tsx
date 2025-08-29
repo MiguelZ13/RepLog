@@ -3,13 +3,13 @@ import Log from "@/components/log";
 import { useData } from "@/hooks/useData";
 import { useNavigation, useRouter } from "expo-router";
 import { useLayoutEffect } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 
 export default function Main() {
   const navigation = useNavigation();
   const router = useRouter();
   const { ...value } = useData();
-  const { data, addWorkout} = value
+  const { data, lastId, addWorkout, removeWorkout} = value
   
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -20,34 +20,48 @@ export default function Main() {
           addWorkout();
           router.navigate({
             pathname: "/(tabs)/(home)/workoutLog/[id]",
-            params: {id: data.length - 1}
+            params: {id: lastId + 1}
           })
         }} /></View>)
     })
-  }, [navigation, router, data, addWorkout])
+  }, [navigation, router, data, lastId, addWorkout])
 
   return (
     <View style={styles.container}>
-      <FlatList data={data} renderItem={({item}) => <Log 
-        date={item.date} 
-        name={item.name} 
-        action={() => router.navigate({
-          pathname: "/(tabs)/(home)/workoutLog/[id]",
-          params: {id: item.id}
-        })} />} />
+      <FlatList data={data}
+       keyExtractor={(item) => `Log-${item.id}`}
+       renderItem={({item}) => <View style={styles.logContainer}>
+        <Text>{item.id}</Text>
+        <Log 
+          date={item.date} 
+          name={item.name}
+          notes={item.note} 
+          action={() => router.navigate({
+            pathname: "/(tabs)/(home)/workoutLog/[id]",
+            params: {id: item.id}
+          })} />
+        <Button type="remove" action={() => removeWorkout(item.id)} />
+      </View>} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-    header: {
-        fontSize: 32,
-        fontWeight: "bold"
-    },
-    container: {
-        backgroundColor: "white",
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center"
-    }
+  header: {
+    fontSize: 32,
+    fontWeight: "bold"
+  },
+  container: {
+    backgroundColor: "white",
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "stretch",
+    paddingVertical: 5
+  },
+  logContainer: {
+    flexDirection: "row",
+    marginHorizontal: 10,
+    alignItems: "center",
+    gap: 5
+  }
 })
