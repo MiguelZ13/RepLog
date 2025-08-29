@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 
 type set = {
   weight: number;
@@ -32,15 +32,28 @@ const defaultWorkout: Data = {
 
 const defaultData: Data[] = [defaultWorkout]
 
-export const DataContext = createContext<any>(null);
+type DataContextType = {
+  getWorkout: (id: number) => Data | null;
+  addWorkout: () => void;
+  updateWorkout: (workout: Data) => void;
+}
 
-export default function DataProvider({
-  children, initialData
-}: {
-  children: React.ReactNode;
-  initialData: Data[] | null;
-}) {
-  const [data, setData] = useState<Data[]>(initialData || defaultData);
+export const DataContext = createContext<DataContextType | null>(null);
+
+export default function DataProvider(children: React.ReactNode) {
+  const [data, setData] = useState<Data[]>(defaultData);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const jsonData = await AsyncStorage.getItem("app_data");
+        setData(jsonData != null ? JSON.parse(jsonData) : defaultData)
+      } catch (e) {
+        console.error(`Error Loading Data: ${e}`)
+      }
+    }
+    loadData();
+  }, [])
 
   const value = useMemo(() => ({
     getWorkout: (id: number) => 

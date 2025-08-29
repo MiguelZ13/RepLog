@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
 type Settings = {
     theme: "light" | "dark";
@@ -18,13 +18,20 @@ type SettingsContextType = {
 
 export const SettingsContext = createContext<SettingsContextType | null>(null);
 
-export default function SettingsProvider({
-    children, initialSettings
-}: {
-    children: React.ReactNode;
-    initialSettings?: Settings | null;
-}) {
-    const [settings, setSettings] = useState<Settings>(initialSettings || defaultSettings);
+export default function SettingsProvider(children: React.ReactNode) {
+    const [settings, setSettings] = useState<Settings>(defaultSettings);
+
+    useEffect(() => {
+        const loadSettings = async () => {
+            try {
+                const settingsData = await AsyncStorage.getItem("app_data");
+                setSettings(settingsData != null ? JSON.parse(settingsData) : defaultSettings)
+            } catch (e) {
+                console.error(`Error Loading Data: ${e}`)
+            }
+        }
+        loadSettings();
+    }, [])
 
     const updateSettings = (newSettings: Partial<Settings>) => {
         setSettings((prev) => {
