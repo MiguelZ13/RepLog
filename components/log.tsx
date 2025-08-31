@@ -9,7 +9,7 @@ type LogProps = {
 
 export default function Log({action, date, name, notes}: LogProps) {
     return (
-    <Pressable onPress={action} style={styles.container}>
+    <Pressable onLongPress={action} style={styles.container}>
         <View style={{flex:1, flexDirection:"row", alignItems: "center"}}>
             <Text style={styles.date}>{date}: </Text>
             <Text style={styles.name}>{name}</Text>

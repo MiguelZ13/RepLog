@@ -83,8 +83,6 @@ export default function WorkoutLog() {
       <Text>{id}</Text>
 
       <SectionList sections={workouts}
-        keyExtractor={(index) => `workout-${index}`}
-
         renderItem={({ item, index, section }) => {
           const sectionIndex = workouts.findIndex(s => s === section);
           return (
